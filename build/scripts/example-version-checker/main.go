@@ -46,7 +46,7 @@ func lineContainsVersion(line string) bool {
 }
 
 func getVersionFromLine(line string) (string, error) {
-	split := strings.SplitN(line, "=", 2)
+	split := strings.SplitN(line, ":=", 2)
 	if len(split) != 2 {
 		return "", fmt.Errorf("Bad version line: %s\n", line)
 	}
