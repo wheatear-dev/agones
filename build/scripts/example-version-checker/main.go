@@ -4,17 +4,24 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strings"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
+const cloneDir = "clone"
+const examplesDir = "../../../examples" // sort this out later
 const gitUrl = "https://github.com/googleforgames/agones.git"
-const targetBranch = "main"
+const targetBranch = "refs/heads/main"
 
 var exlcudedPatterns = [...]string{"*.md", "*.yaml", "OWNERS", ".gitignore"}
 
 func main() {
-	names, err := getExampleDirNames("examples")
+	names, err := getExampleDirNames(examplesDir)
 	if err != nil {
 		fmt.Print(err)
 	} else {
@@ -22,6 +29,27 @@ func main() {
 			fmt.Println(name)
 		}
 	}
+}
+
+func cloneRepo(gitDir string) (*git.Repository, error) {
+	cloneOptions := &git.CloneOptions{
+		URL: gitUrl,
+	}
+	return git.PlainClone(gitDir, false, cloneOptions)
+}
+
+func fetchTargetCommit(repo *git.Repository) *object.Commit {
+	targetRef, err := repo.Reference(plumbing.ReferenceName(targetBranch), true)
+	if err != nil {
+		log.Fatalf("Could refernce to main: %v\n", err)
+	}
+
+	targetCommit, err := repo.CommitObject(targetRef.Hash())
+	if err != nil {
+		log.Fatalf("Failed to get HEAD on main: %v\n", err)
+	}
+
+	return targetCommit
 }
 
 func dirIsExample(dirName string) bool {
