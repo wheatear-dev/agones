@@ -11,18 +11,40 @@ import (
 var exlcudedPatterns = [...]string{"*.md", "*.yaml", "OWNERS", ".gitignore"}
 
 func main() {
-	byteContents, err := os.ReadFile("/Users/edwardmoulsdale/Projects/agones/examples/xonotic/Makefile")
+	names, err := getExampleDirNames("/Users/edwardmoulsdale/Projects/agones/examples")
 	if err != nil {
 		fmt.Print(err)
-		os.Exit(1)
+	} else {
+		for _, name := range names {
+			fmt.Println(name)
+		}
 	}
-	contents := string(byteContents)
-	version, err := getVersionFromMakefile(contents)
+}
+
+func dirIsExample(dirName string) bool {
+	makefileName := fmt.Sprintf("%s/Makefile", dirName)
+	if _, err := os.Stat(makefileName); err == nil {
+		return true
+	} else {
+		return false
+	}
+}
+
+func getExampleDirNames(baseDir string) ([]string, error) {
+	dirNames := make([]string, 0)
+
+	entries, err := os.ReadDir(baseDir)
 	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
+		return dirNames, fmt.Errorf("Count not open directory: %v\n", err)
 	}
-	fmt.Println(version)
+
+	for _, entry := range entries {
+		name := fmt.Sprintf("%s/%s", baseDir, entry.Name())
+		if dirIsExample(name) {
+			dirNames = append(dirNames, name)
+		}
+	}
+	return dirNames, nil
 }
 
 func getVersionFromMakefile(contents string) (string, error) {
