@@ -8,10 +8,13 @@ import (
 	"strings"
 )
 
+const gitUrl = "https://github.com/googleforgames/agones.git"
+const targetBranch = "main"
+
 var exlcudedPatterns = [...]string{"*.md", "*.yaml", "OWNERS", ".gitignore"}
 
 func main() {
-	names, err := getExampleDirNames("/Users/edwardmoulsdale/Projects/agones/examples")
+	names, err := getExampleDirNames("examples")
 	if err != nil {
 		fmt.Print(err)
 	} else {
