@@ -13,7 +13,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-const cloneDir = "clone"
+const cloneDir = "tmp"
 const examplesDir = "../../../examples" // sort this out later
 const gitUrl = "https://github.com/googleforgames/agones.git"
 const targetBranch = "refs/heads/main"
@@ -21,14 +21,9 @@ const targetBranch = "refs/heads/main"
 var exlcudedPatterns = [...]string{"*.md", "*.yaml", "OWNERS", ".gitignore"}
 
 func main() {
-	names, err := getExampleDirNames(examplesDir)
-	if err != nil {
-		fmt.Print(err)
-	} else {
-		for _, name := range names {
-			fmt.Println(name)
-		}
-	}
+	repo, _ := cloneRepo(cloneDir)
+	commit := fetchTargetCommit(repo)
+	fmt.Println(commit)
 }
 
 func cloneRepo(gitDir string) (*git.Repository, error) {
@@ -41,7 +36,7 @@ func cloneRepo(gitDir string) (*git.Repository, error) {
 func fetchTargetCommit(repo *git.Repository) *object.Commit {
 	targetRef, err := repo.Reference(plumbing.ReferenceName(targetBranch), true)
 	if err != nil {
-		log.Fatalf("Could refernce to main: %v\n", err)
+		log.Fatalf("Could not get reference to main: %v\n", err)
 	}
 
 	targetCommit, err := repo.CommitObject(targetRef.Hash())
