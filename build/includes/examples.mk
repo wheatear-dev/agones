@@ -103,5 +103,5 @@ build-example-custom-controller:
 
 # ensure a version increase when an example changes
 check-example-versions: ensure-build-image
-	docker run --rm $(common_mounts) --workdir=$(mount_path)/build/scripts/example-version-checker $(DOCKER_RUN_ARGS) $(build_tag) \
-		go run main.go
+	docker run --rm $(common_mounts) --workdir=$(mount_path) $(DOCKER_RUN_ARGS) $(build_tag) \
+		go run -modfile=./build/scripts/example-version-checker/go.mod -mod=readonly ./build/scripts/example-version-checker/main.go

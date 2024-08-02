@@ -21,27 +21,54 @@ const targetBranch = "refs/heads/main"
 var exlcudedPatterns = [...]string{"*.md", "*.yaml", "OWNERS", ".gitignore"}
 
 func main() {
-	repo, _ := cloneRepo(cloneDir)
-	commit := fetchTargetCommit(repo)
+	repo := getLocalRepo()
+	commit := getLocalCommit(repo)
 	fmt.Println(commit)
 }
 
-func cloneRepo(gitDir string) (*git.Repository, error) {
+func getLocalRepo() *git.Repository {
+	repo, err := git.PlainOpen(".")
+	if err != nil {
+		log.Fatalf("Failed to open local git repository: %v", err)
+	}
+
+	return repo
+}
+
+func getLocalCommit(repo *git.Repository) *object.Commit {
+	ref, err := repo.Reference(plumbing.HEAD, true)
+	if err != nil {
+		log.Fatalf("Failed to get local HEAD reference: %v", err)
+	}
+
+	commit, err := repo.CommitObject(ref.Hash())
+	if err != nil {
+		log.Fatalf("Failed to get local commit object: %v", err)
+	}
+
+	return commit
+}
+
+func cloneRepo(gitDir string) *git.Repository {
 	cloneOptions := &git.CloneOptions{
 		URL: gitUrl,
 	}
-	return git.PlainClone(gitDir, false, cloneOptions)
+	repo, err := git.PlainClone(gitDir, false, cloneOptions)
+	if err != nil {
+		log.Fatalf("Failed to clone the upstream git repository: %v", err)
+	}
+	return repo
 }
 
 func fetchTargetCommit(repo *git.Repository) *object.Commit {
 	targetRef, err := repo.Reference(plumbing.ReferenceName(targetBranch), true)
 	if err != nil {
-		log.Fatalf("Could not get reference to main: %v\n", err)
+		log.Fatalf("Failed to get reference to upstream/main: %v\n", err)
 	}
 
 	targetCommit, err := repo.CommitObject(targetRef.Hash())
 	if err != nil {
-		log.Fatalf("Failed to get HEAD on main: %v\n", err)
+		log.Fatalf("Failed to get HEAD on upstream/main: %v\n", err)
 	}
 
 	return targetCommit
